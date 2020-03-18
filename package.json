@@ -12,15 +12,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zlyfer/DiscordDynChanBot.git"
+    "url": "git+https://github.com/ungdev/DiscordDynChanBot.git"
   },
   "keywords": [
     "Discord"
   ],
-  "author": "zlyfer",
+  "author": "ung",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/zlyfer/DiscordDynChanBot/issues"
+    "url": "https://github.com/ungdev/DiscordDynChanBot/issues"
   },
-  "homepage": "https://github.com/zlyfer/DiscordDynChanBot#readme"
+  "homepage": "https://github.com/ungdev/DiscordDynChanBot#readme"
 }
