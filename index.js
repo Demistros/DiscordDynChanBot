@@ -1,10 +1,11 @@
 // TODO: Do permissions checks before every action.
-process.chdir('/home/zlyfer/DiscordBots/DiscordDynChanBot');
+process.chdir('/home/user/documents/professional_documents/utt/university/conseil-perf/git/DiscordDynChanBot');
+
+require('dotenv').config();
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
 const fs = require("fs");
-const token = require("./token.json");
 const guildConfigFolder = "./guildConfig/";
 const configTemplate = require("./configTemplate.json");
 const botPrefix = "/zldc ";
@@ -192,7 +193,7 @@ client.on('channelStateUpdate', (oldMember, newMember) => {
 			for (var i = 0; i < 2; i++) {
 				if (i = 0) {
 					var channel = oldMember.voiceChannel;
-				else
+				} else {
 					var channel = oldMember.textChannel;
 				}
 				var channelName = channel.name;
@@ -620,4 +621,4 @@ process.on('unhandledRejection', (err) => {
 	console.error(err);
 })
 
-client.login(token.token);
+client.login(process.env.DISCORD_BOT_TOKEN);
