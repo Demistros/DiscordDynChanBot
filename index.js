@@ -6,9 +6,10 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 const fs = require("fs");
+const token = require("./token.json");
 const guildConfigFolder = "./guildConfig/";
 const configTemplate = require("./configTemplate.json");
-const botPrefix = "/zldc ";
+const botPrefix = "~zldc~";
 
 function applyUserRolesPermissions(guild, guildConfig, creator, channel) {
 	if (checkPerm(guild, "MANAGE_ROLES")) {
@@ -92,7 +93,7 @@ function applyChanges(guild, changeObj) {
 				}
 			}
 		}
-		if (channelType == "voice" || channelType == "text") {
+		if (channelType == "voice") {
 			if (channelName.indexOf(guildConfig.channelPrefix) != -1 || channelName.indexOf(changeObj.channelPrefix) != -1) {
 				if (checkPerm(guild, "MANAGE_CHANNELS")) {
 					channelName = channelName.replace(changeObj.channelPrefix, guildConfig.channelPrefix);
@@ -185,92 +186,80 @@ client.on('channelUpdate', (oldChannel, newChannel) => {
 	}
 });
 
-client.on('channelStateUpdate', (oldMember, newMember) => {
+client.on('voiceStateUpdate', (oldMember, newMember) => {
 	var guild = newMember.guild;
 	var guildConfig = getConfig(guild.id);
 	if (guildConfig.enable) {
-		if (oldMember.voiceChannel != undefined || oldMember.voiceChannel != undefined) {
-			for (var i = 0; i < 2; i++) {
-				if (i = 0) {
-					var channel = oldMember.voiceChannel;
+		if (oldMember.voiceChannel != undefined) {
+			var channel = oldMember.voiceChannel;
+			var channelName = channel.name;
+			if (channelName.indexOf(guildConfig.channelPrefix) == 0) {
+				var members = channel.members.array();
+				if (members.length == 0) {
+					if (checkPerm(guild, "MANAGE_CHANNELS")) {
+						channel.delete();
+					}
 				} else {
-					var channel = oldMember.textChannel;
-				}
-				var channelName = channel.name;
-				if (channelName.indexOf(guildConfig.channelPrefix) == 0) {
-					var members = channel.members.array();
-					if (members.length == 0) {
-						if (checkPerm(guild, "MANAGE_CHANNELS")) {
-							channel.delete();
+					var memberName = oldMember.user.username;
+					if (channelName.indexOf(memberName) != -1) {
+						var channelChange = true;
+						if (newMember.voiceChannel != undefined) {
+							var newChannel = newMember.voiceChannel;
+							if (newChannel.id == channel.id) {
+								var channelChange = false;
+							}
 						}
-					} else {
-						var memberName = oldMember.user.username;
-						if (channelName.indexOf(memberName) != -1) {
-							var channelChange = true;
-							if (newMember.voiceChannel != undefined && i==0) {
-								var newChannel = newMember.voiceChannel;
-								if (newChannel.id == channel.id) {
-									var channelChange = false;
-								}
-							}
-							if (newMember.textChannel != undefined && i==1) {
-								var newChannel = newMember.textChannel;
-								if (newChannel.id == channel.id) {
-									var channelChange = false;
-								}
-							}
-							if (channelChange == true) {
-								var members = guild.members.array();
-								let oMP, nMP;
-								for (var member = 0; member < members.length; member++) {
-									var channelID = members[member].channelID;
-									if (channelID == channel.id) {
-										var newOwner = members[member];
-										if (channelChange == true) {
-											if (memberName != newOwner.user.username) {
-												if (checkPerm(guild, "MANAGE_CHANNELS")) {
-													channel.edit({
-														name: guildConfig.channelPrefix + " " + newOwner.user.username
-													});
-												}
-												if (guildConfig.givePermissions || guildConfig.giveChannelPermissions) {
-													if (checkPerm(guild, "MANAGE_ROLES")) {
-														oMP = {};
-														nMP = {};
-														if (guildConfig.givePermissions) {
-															oMP["MUTE_MEMBERS"] = false;
-															oMP["DEAFEN_MEMBERS"] = false;
-															nMP["MUTE_MEMBERS"] = true;
-															nMP["DEAFEN_MEMBERS"] = true;
-															console.log(nMP);
-															console.log(newOwner);
-														}
-														if (guildConfig.giveChannelPermissions) {
-															oMP["MANAGE_CHANNELS"] = false;
-															nMP["MANAGE_CHANNELS"] = true;
-														}
-														channel.overwritePermissions(oldMember, oMP)
-															.then(console.log("Changed permissions for a old member."));
-														channel.overwritePermissions(newOwner, nMP)
-															.then(console.log("Changed permissions for a new member."));
-													}
-												}
-												channelChange = false;
+						if (channelChange == true) {
+							var members = guild.members.array();
+							let oMP, nMP;
+							for (var member = 0; member < members.length; member++) {
+								var voiceChannelID = members[member].voiceChannelID;
+								if (voiceChannelID == channel.id) {
+									var newOwner = members[member];
+									if (channelChange == true) {
+										if (memberName != newOwner.user.username) {
+											if (checkPerm(guild, "MANAGE_CHANNELS")) {
+												channel.edit({
+													name: guildConfig.channelPrefix + " " + newOwner.user.username
+												});
 											}
+											if (guildConfig.givePermissions || guildConfig.giveChannelPermissions) {
+												if (checkPerm(guild, "MANAGE_ROLES")) {
+													oMP = {};
+													nMP = {};
+													if (guildConfig.givePermissions) {
+														oMP["MUTE_MEMBERS"] = false;
+														oMP["DEAFEN_MEMBERS"] = false;
+														nMP["MUTE_MEMBERS"] = true;
+														nMP["DEAFEN_MEMBERS"] = true;
+														console.log(nMP);
+														console.log(newOwner);
+													}
+													if (guildConfig.giveChannelPermissions) {
+														oMP["MANAGE_CHANNELS"] = false;
+														nMP["MANAGE_CHANNELS"] = true;
+													}
+													channel.overwritePermissions(oldMember, oMP)
+														.then(console.log("Changed permissions for a old member."));
+													channel.overwritePermissions(newOwner, nMP)
+														.then(console.log("Changed permissions for a new member."));
+												}
+											}
+											channelChange = false;
 										}
 									}
 								}
-								applyUserRolesPermissions(guild, guildConfig, newOwner, channel);
-								// if (checkPerm(guild, "MANAGE_ROLES")) {
-								// let role = guild.roles.find('name', "@everyone");
-								// if (role) {
-								//   channel.overwritePermissions(oldMember, {
-								//       "VIEW_CHANNEL": false
-								//     })
-								//     .then(console.log("Changed some permissions for userRoles."));
-								// }
-								// }
 							}
+							applyUserRolesPermissions(guild, guildConfig, newOwner, channel);
+							// if (checkPerm(guild, "MANAGE_ROLES")) {
+							// let role = guild.roles.find('name', "@everyone");
+							// if (role) {
+							//   channel.overwritePermissions(oldMember, {
+							//       "VIEW_CHANNEL": false
+							//     })
+							//     .then(console.log("Changed some permissions for userRoles."));
+							// }
+							// }
 						}
 					}
 				}
@@ -285,15 +274,6 @@ client.on('channelStateUpdate', (oldMember, newMember) => {
 				}
 			}
 		}
-		if (newMember.textChannel != undefined) {
-			var guild = newMember.guild;
-			var guildConfig = getConfig(guild.id);
-			if (newMember.textChannel.name == guildConfig.mainChannel) {
-				if (checkPerm(guild, "MANAGE_CHANNELS")) {
-					guild.createChannel(guildConfig.channelPrefix + " " + newMember.user.username, "text");
-				}
-			}
-		}
 	}
 })
 
@@ -303,56 +283,6 @@ client.on('channelCreate', (channel) => {
 	if (guildConfig.enable) {
 		var type = channel.type;
 		if (type == "voice") {
-			var name = channel.name;
-			if (name.indexOf(guildConfig.channelPrefix) == 0) {
-				if (guildConfig.category != false) {
-					var channels = guild.channels.array();
-					var categoryExists = false;
-					for (var channeli = 0; channeli < channels.length; channeli++) {
-						if (channels[channeli].type == "category") {
-							if (channels[channeli].name == guildConfig.category) {
-								if (checkPerm(guild, "MANAGE_CHANNELS")) {
-									channel.setParent(channels[channeli].id);
-								}
-								categoryExists = true;
-							}
-						}
-					}
-					if (categoryExists == false) {
-						changeConfig(guild, "category", "false");
-					}
-				}
-				var creatorName = name.replace(guildConfig.channelPrefix + " ", "");
-				var members = guild.members.array();
-				let p;
-				for (var member = 0; member < members.length; member++) {
-					if (members[member].user.username == creatorName) {
-						var creator = members[member];
-						if (checkPerm(guild, "MOVE_MEMBERS")) {
-							creator.edit({
-								channel: channel
-							});
-						}
-						if (checkPerm(guild, "MANAGE_CHANNELS")) {
-							channel.edit({
-								userLimit: guildConfig.userLimit
-							});
-						}
-						if (guildConfig.givePermissions || guildConfig.giveChannelPermissions) {
-							if (checkPerm(guild, "MANAGE_ROLES")) {
-								p = {};
-								p["MUTE_MEMBERS"] = guildConfig.givePermissions;
-								p["DEAFEN_MEMBERS"] = guildConfig.givePermissions;
-								p["MANAGE_CHANNELS"] = guildConfig.giveChannelPermissions;
-								channel.overwritePermissions(creator, p);
-							}
-						}
-						applyUserRolesPermissions(guild, guildConfig, creator, channel);
-					}
-				}
-			}
-		}
-		if (type == "text") {
 			var name = channel.name;
 			if (name.indexOf(guildConfig.channelPrefix) == 0) {
 				if (guildConfig.category != false) {

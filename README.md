@@ -2,4 +2,12 @@
 Dynamic temporary channel for every server. Keep your server clean!
 
 # Discord Bots Profile
-https://discordbots.org/bot/352801398385016832
+
+# HOWTO
+
+## Set bot token
+
+Bot token is set in `.env` file :
+```
+DISCORD_BOT_TOKEN=your_token
+```
