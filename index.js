@@ -6,10 +6,9 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 const fs = require("fs");
-const token = require("./token.json");
 const guildConfigFolder = "./guildConfig/";
 const configTemplate = require("./configTemplate.json");
-const botPrefix = "~zldc~";
+const botPrefix = "/dc ";
 
 function applyUserRolesPermissions(guild, guildConfig, creator, channel) {
 	if (checkPerm(guild, "MANAGE_ROLES")) {
@@ -195,9 +194,12 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 			var channelName = channel.name;
 			if (channelName.indexOf(guildConfig.channelPrefix) == 0) {
 				var members = channel.members.array();
+
+				// Delete channel if empty
 				if (members.length == 0) {
 					if (checkPerm(guild, "MANAGE_CHANNELS")) {
 						channel.delete();
+		        console.log('Delete channel : ' + channel.name);
 					}
 				} else {
 					var memberName = oldMember.user.username;
@@ -270,7 +272,9 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 			var guildConfig = getConfig(guild.id);
 			if (newMember.voiceChannel.name == guildConfig.mainChannel) {
 				if (checkPerm(guild, "MANAGE_CHANNELS")) {
+          console.log('Creating new channel : ' + newMember.user.username);
 					guild.createChannel(guildConfig.channelPrefix + " " + newMember.user.username, "voice");
+					guild.createChannel(guildConfig.channelPrefix + " " + newMember.user.username, "text");
 				}
 			}
 		}
